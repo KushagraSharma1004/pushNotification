@@ -4,25 +4,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Push Notification Example</title>
 </head>
 
 <body>
-    <button id="button">Click</button>
+    <h1>Push Notification Demo</h1>
+    <button id="notifyButton">Enable Notifications</button>
+    <button id="testNotificationButton">Send Test Notification</button>
 </body>
 
 <script>
-    const button = document.getElementById("button")
-    button.addEventListener("click", () => {
-        Notification.requestPermission().then(perm => {
-            // alert(perm)
-            if (perm === "granted") {
-                new Notification("Example notification", {
-                    body: "Hi is's localhost",
-                })
+    // Check if service workers and notifications are supported
+    if ('serviceWorker' in navigator && 'Notification' in window) {
+        // Register the service worker
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch(error => console.error('Service Worker registration failed:', error));
+
+        const notifyButton = document.getElementById('notifyButton');
+        const testNotificationButton = document.getElementById('testNotificationButton');
+
+        // Request notification permission
+        notifyButton.addEventListener('click', () => {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    alert('Notifications enabled!');
+                } else {
+                    alert('Notifications denied!');
+                }
+            });
+        });
+
+        // Send a test notification
+        testNotificationButton.addEventListener('click', () => {
+            if (Notification.permission === 'granted') {
+                // Send a notification via the service worker
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification('Test Notification', {
+                        body: 'This is a test notification sent from the website.',
+                        icon: '/icon.png', // Add a valid icon URL or path
+                    });
+                });
+            } else {
+                alert('Please enable notifications first!');
             }
-        })
-    })
+        });
+    } else {
+        alert('Your browser does not support notifications or service workers.');
+    }
 </script>
 
 </html>
